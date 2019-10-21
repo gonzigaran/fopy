@@ -1,0 +1,3 @@
+[submodule "model-examples"]
+	path = model-examples
+	url = git@github.com:pablogventura/model-examples.git
