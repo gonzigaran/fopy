@@ -5,9 +5,9 @@
 import os
 import subprocess as sp
 
-import files
-from first_order.isomorphisms import Automorphism, Homomorphism, Isomorphism
-from interfaces import config
+import fopy.misc.files
+from fopy.first_order.isomorphisms import Automorphism, Homomorphism, Isomorphism
+from fopy.interfaces import config
 
 
 def identity_table(size):

@@ -3,7 +3,7 @@
 
 # TERMS
 
-from myunicode import subscript
+from fopy.misc.myunicode import subscript
 from itertools import product, combinations
 from collections import defaultdict
 

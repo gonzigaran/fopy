@@ -2,7 +2,7 @@
 #!/usr/bin/env python
 
 from itertools import product
-from misc import indent
+from fopy.misc.misc import indent
 
 
 class Model(object):

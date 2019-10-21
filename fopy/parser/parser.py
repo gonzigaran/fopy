@@ -2,8 +2,8 @@
 # !/usr/bin/env python
 import sys
 
-from first_order.models import Model
-from first_order.relops import Relation, Operation
+from fopy.first_order.models import Model
+from fopy.first_order.relops import Relation, Operation
 
 
 class ParserError(Exception):

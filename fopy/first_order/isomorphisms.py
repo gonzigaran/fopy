@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-from misc import indent
+from fopy.misc.misc import indent
 
 
 class Homomorphism(object):
