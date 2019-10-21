@@ -5,7 +5,6 @@
 import os
 import subprocess as sp
 
-import fopy.misc.files
 from fopy.first_order.isomorphisms import Automorphism, Homomorphism, Isomorphism
 from fopy.interfaces import config
 
