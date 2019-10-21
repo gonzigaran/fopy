@@ -4,7 +4,8 @@
 import fopy
 
 def main():
-    pass
-
+    model = fopy.parser("fopy/model-examples/algebra.model")
+    print(model)
+    
 if __name__ == "__main__":
     main()
