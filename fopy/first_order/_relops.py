@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python
-
+# TODO decoradores para hacer operaciones y relaciones procedurales
 class Relation(object):
     """
     Relation
     """
     
-    def __init__(self, sym, arity, rel=set(), formula=None, superrel=None):
+    def __init__(self, sym, arity, rel=set(), formula=None):
         self.sym = sym
         self.arity = arity
         self.r = rel
         self.formula = formula
-        self.superrel = superrel
     
     def add(self, t):
         if len(t) != self.arity:
@@ -77,3 +76,22 @@ class Operation(object):
     def graph_rel(self):
         rel = {t + (self.op[t],) for t in self.op}
         return Relation("g" + self.sym, self.arity + 1, rel)
+
+def FO_Operation_decorator(d_universe, arity=None):
+    """
+    Decorador para definir facilmente operaciones de primer orden
+    con funciones en Python
+    """
+    def wrap(f):
+        return FO_Operation(f, d_universe=d_universe, arity=arity)
+    return wrap
+
+
+def FO_Relation_decorator(d_universe, arity=None):
+    """
+    Decorador para definir facilmente relaciones de primer orden
+    con funciones en Python
+    """
+    def wrap(f):
+        return FO_Relation(f, d_universe=d_universe, arity=arity)
+    return wrap

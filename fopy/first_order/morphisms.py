@@ -2,7 +2,8 @@
 #!/usr/bin/env python
 
 from fopy.misc.misc import indent
-
+# TODO decoradores para morfismos procedurales
+# TODO embeddings? automorfismos? Mejorar que solo se imprima el tipo distinto pero que sean iguales.
 
 class Homomorphism(object):
     def __init__(self, d, source, target, subtype):
@@ -32,25 +33,10 @@ class Homomorphism(object):
         return result
 
 
-class Isomorphism(object):
-    def __init__(self, d, source, target, subtype):
-        self.values = d
-        self.source = source
-        self.target = target
-        self.subtype = subtype
-
-    def __call__(self, x):
-        try:
-            return self.values[x]
-        except KeyError:
-            return
-        return self.values[x]
+class Isomorphism(Homomorphism):
 
     def inverse(self):
         return Isomorphism({v: k for k, v in self.values.items()}, self.target, self.source, self.subtype)
-
-    def vcall(self, xvector):
-        return tuple(self(x) for x in xvector)
 
     def __repr__(self):
         result = "Isomorphism(\n"
@@ -64,11 +50,9 @@ class Isomorphism(object):
         return result
 
 
-class Automorphism(object):
+class Automorphism(Isomorphism):
     def __init__(self, d, model, subtype):
-        self.values = d
-        self.model = model
-        self.subtype = subtype
+        super(Automorphism).__init__(d,model,model,subtype)
 
     def __call__(self, x):
         try:
@@ -85,7 +69,7 @@ class Automorphism(object):
         for a, b in self.values.items():
             result += "  %s->%s\n" % (a, b)
         result += "from:\n"
-        result += indent(repr(self.model))
+        result += indent(repr(self.source))
         result += ")"
         return result
 
