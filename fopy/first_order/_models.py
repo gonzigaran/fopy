@@ -58,7 +58,7 @@ class Model(object):
     def __len__(self):
         return len(self.universe)
 
-class FO_Submodel(FO_Model):
+class Submodel(Model):
 
     """
     Submodelos de algun tipo de primer orden.
@@ -97,7 +97,7 @@ class FO_Submodel(FO_Model):
         return False
 
 
-class FO_Product(FO_Model):
+class Product(Model):
 
     def __init__(self, factors):
         """
@@ -144,13 +144,13 @@ class FO_Product(FO_Model):
         return list(range(len(self.factors)))
 
 
-class FO_SubdirectProduct(FO_Submodel):
+class FO_SubdirectProduct(Submodel):
 
     """
     Producto Subdirecto
 
     >>> from definability.examples.examples import *
-    >>> M2=FO_Model(tiporetacotado, [0,1], {'^': FO_Operation({(0,0):0,(0,1): 0,(1,0): 0,(1,1): 1}),'v': FO_Operation({(0,0):0,(0,1): 1,(1,0): 1,(1,1): 1}),'Max': FO_Constant(1),'Min': FO_Constant(0)}, {})
+    >>> M2=Model(tiporetacotado, [0,1], {'^': FO_Operation({(0,0):0,(0,1): 0,(1,0): 0,(1,1): 1}),'v': FO_Operation({(0,0):0,(0,1): 1,(1,0): 1,(1,1): 1}),'Max': FO_Constant(1),'Min': FO_Constant(0)}, {})
     >>> P=M2*M2*M2
     >>> FO_SubdirectProduct([(1,1,1), (0,0,0), (0,1,1)], P).is_global()
     False
@@ -208,7 +208,7 @@ class FO_SubdirectProduct(FO_Submodel):
         return True
 
 
-class FO_Quotient(FO_Model):
+class FO_Quotient(Model):
 
     """
     Modelo Cociente

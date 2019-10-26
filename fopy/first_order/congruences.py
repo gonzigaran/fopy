@@ -10,6 +10,143 @@ from functools import lru_cache
 from functools import reduce
 
 
+class _CardinalBlock(object):
+    def __init__(self, value):
+        self.value = value
+
+
+class Partition(object):
+    def __init__(self, iter_of_iter=()):
+        self.v = dict()
+        self.extend(iter_of_iter)
+    
+    def __call__(self, a, b):
+        return self.root(a) == self.root(b)
+    
+    def from_list_of_pairs(self, l):
+        for a, b in l:
+            self.add_element(a)
+            self.add_element(b)
+            self.join_blocks(a, b)
+    
+    def to_list_of_pairs(self):
+        result = set()
+        for a in self.v:
+            for b in self.v:
+                if self(a, b):
+                    result.add((a, b))
+        return result
+    
+    def copy(self):
+        result = Partition()
+        result.v = self.v.copy()
+        return result
+    
+    def extend(self, ls):
+        """
+        Extiende la particion con una lista de listas
+        :param list:
+        :return:
+        """
+        for l in ls:
+            for e in l:
+                self.add_element(e)
+                self.join_blocks(e, l[0])
+    
+    def add_element(self, e):
+        if e not in self.v:
+            self.v[e] = _CardinalBlock(-1)
+    
+    def root(self, e):
+        """
+        Representante de la clase de equivalencia de e
+        """
+        # TODO NO DEBERIA SER RECURSIVO
+        # deberia avanzar recordando los que no tienen al root como padre y acomodar todo al final
+        if self.is_root(e):
+            return e
+        else:
+            self.v[e] = self.root(self.v[e])
+            return self.v[e]
+    
+    def join_blocks(self, i, j):
+        
+        ri = self.root(i)
+        rj = self.root(j)
+        if ri != rj:
+            si = self.v[ri].value
+            sj = self.v[rj].value
+            if si < sj:
+                self.v[i] = rj
+                self.v[j] = _CardinalBlock(si + sj)
+            else:
+                self.v[j] = ri
+                self.v[i] = _CardinalBlock(si + sj)
+    
+    def to_list(self):
+        result = defaultdict(list)
+        for e in self.v:
+            result[self.root(e)].append(e)
+        return list(result.values())
+    
+    def __repr__(self):
+        result = repr(self.to_list())[1:-1].replace("[", "|").replace("]", "|")
+        return "[" + result + "]"
+    
+    def meet(self, other):
+        """
+
+        :type other: Partition
+        """
+        result = Partition()
+        ht = dict()
+        for e in self.v:
+            r1 = self.root(e)
+            r2 = other.root(e)
+            if (r1, r2) in ht:
+                r = ht[r1, r2]
+                result.v[r] = _CardinalBlock(result.v[r].value + 1)
+                result.v[e] = r
+            else:
+                ht[(r1, r2)] = e
+                result.v[e] = _CardinalBlock(-1)
+        return result
+    
+    def is_root(self, e):
+        return isinstance(self.v[e], _CardinalBlock)
+    
+    def join(self, other):
+        """
+        The join(U, V)
+            for each i which is not a root of U
+                join-blocks(i, U[i], V)
+        :type other: Partition
+        """
+        result = other.copy()
+        for e in self.v:
+            if not self.is_root(e):  # not a root
+                result.join_blocks(e, self.root(e))
+        return result
+    
+    def iter_tuples(self):
+        for a in self.v:
+            for b in self.v:
+                if self(a, b):
+                    yield (a, b)
+    
+    def block(self, e):
+        result = set()
+        r = self.root(e)
+        for i in self.v:
+            if self.root(i) == r:
+                result.add(i)
+        return frozenset(result)
+    
+    def iter_blocks(self):
+        for e in self.v:
+            if self.is_root(e):
+                yield self.block(e)
+
 
 class Eq_Rel(Relation):
     """
