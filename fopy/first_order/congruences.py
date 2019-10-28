@@ -146,6 +146,9 @@ class Partition(object):
         for e in self.v:
             if self.is_root(e):
                 yield self.block(e)
+    
+    def __hash__(self):
+        return hash(frozenset(self.v.items()))
 
 
 class Congruence(Partition):
@@ -212,7 +215,7 @@ class Congruence(Partition):
     def __eq__(self, other):
         if self.model != other.model:
             return False
-        if self.v != set(other.d):
+        if self.v != set(other.v):
             return False
         return True
 
@@ -224,9 +227,6 @@ class Congruence(Partition):
     
     def __gt__(self, other):
         return other < self
-    
-    def __hash__(self):
-        return hash(frozenset(self.dict.items()))
     
     def __repr__(self):
         return "Congruence(" + repr(super(Congruence, self)) + ")"

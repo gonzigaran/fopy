@@ -5,3 +5,5 @@
 from fopy.first_order._models import Model
 from fopy.first_order._relops import Relation, Operation
 from fopy.first_order import formulas
+from fopy.first_order import morphisms
+from fopy.first_order import congruences
