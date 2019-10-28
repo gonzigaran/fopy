@@ -7,7 +7,7 @@ from fopy.misc.myunicode import subscript
 from fopy.interfaces.minion import MinionSol
 from itertools import combinations, product, chain
 from functools import lru_cache
-from functools import reduce
+from functools import reduce, total_ordering
 
 
 class _CardinalBlock(object):
@@ -18,18 +18,18 @@ class _CardinalBlock(object):
 class Partition(object):
     def __init__(self, iter_of_iter=()):
         self.v = dict()
-        self.extend(iter_of_iter)
+        self.from_table(iter_of_iter)
     
     def __call__(self, a, b):
         return self.root(a) == self.root(b)
     
-    def from_list_of_pairs(self, l):
+    def from_table(self, l):
         for a, b in l:
             self.add_element(a)
             self.add_element(b)
             self.join_blocks(a, b)
     
-    def to_list_of_pairs(self):
+    def table(self):
         result = set()
         for a in self.v:
             for b in self.v:
@@ -42,7 +42,7 @@ class Partition(object):
         result.v = self.v.copy()
         return result
     
-    def extend(self, ls):
+    def from_blocks(self, ls):
         """
         Extiende la particion con una lista de listas
         :param list:
@@ -148,48 +148,7 @@ class Partition(object):
                 yield self.block(e)
 
 
-class Eq_Rel(Relation):
-    """
-    Relacion binaria que cumple los axiomas de equivalencia
-
-    >>> rel = Eq_Rel([(0, 0),(1, 1),(2, 2),(3, 3),(4, 4),(2, 3),(3, 2)], {0,1,2,3,4})
-    >>> rel(2, 3)
-    True
-    >>> rel(4, 3)
-    False
-    >>> rel.table()
-    [[0, 0], [1, 1], [2, 2], [2, 3], [3, 2], [3, 3], [4, 4]]
-    """
-    count = 0
-    
-    def __init__(self, sym, rel=set(), formula=None):
-        if not sym:
-            sym = "≡" + subscript(Eq_Rel.count)
-        super(Eq_Rel, self).__init__(sym, 2, rel, formula)
-        assert self.symm() and self.refl() and self.trans()
-    # TODO PARTITION USANDO UNION FIND
-    def refl(self):
-        for x in self.model.universe:
-            if not (x, x) in self.d:
-                return False
-        return True
-    
-    def symm(self):
-        for r in self.d:
-            if not (r[1], r[0]) in self.d:
-                return False
-        return True
-    
-    def trans(self):
-        for r in self.d:
-            for s in self.d:
-                if r[1] == s[0]:
-                    if not (r[0], s[1]) in self.d:
-                        return False
-        return True
-
-
-class Congruence(Eq_Rel):
+class Congruence(Partition):
     """
     Congruencia
 
@@ -203,19 +162,10 @@ class Congruence(Eq_Rel):
     [[0, 0], [0, 2], [1, 1], [1, 3], [2, 0], [2, 2], [3, 1], [3, 3]]
     """
     
-    def __init__(self, d, model):
-        assert d and isinstance(d, list) and isinstance(d[0], tuple)
-        assert model
+    def __init__(self, table, model):
         self.model = model
-        self.d = d
-        super(Congruence, self).__init__(d, model)
+        super(Congruence, self).__init__(table)
         # assert self.preserva_operaciones()
-    
-    def relacionados(self, t, s):
-        for i in range(len(t)):
-            if not (t[i], s[i]) in self.d:
-                return False
-        return True
     
     def __preserva_operacion(self, op):
         if self.model.operations[op].arity() == 0:
@@ -223,8 +173,8 @@ class Congruence(Eq_Rel):
         else:
             for t in self.model.operations[op].domain():
                 for s in self.model.operations[op].domain():
-                    if self.relacionados(t, s):
-                        if not (self.model.operations[op](*t), self.model.operations[op](*s)) in self.d:
+                    if self(t, s):
+                        if not self(self.model.operations[op](*t), self.model.operations[op](*s)):
                             return False
         return True
     
@@ -233,67 +183,53 @@ class Congruence(Eq_Rel):
         for op in self.model.operations:
             result = result and self.__preserva_operacion(op)
         return result
-    
-    @lru_cache(maxsize=None)
+
     def classes(self):
-        result = set()
-        for x in self.model.universe:
-            result.add(frozenset(self.equiv_class(x)))
-        return result
+        return self.iter_blocks()
     
     def equiv_class(self, x):
-        return {y for y in self.model.universe if (x, y) in self.d}
+        return self.block(x)
     
     def __and__(self, other):
         """
         Genera la congruencia a partir de la intersección de 2 congruencias
         """
         assert self.model == other.model
-        result = list(set(self.d) & set(other.d))
-        return Congruence(result, self.model)
+        return self.meet(other)
     
     def __or__(self, other):
         """
         Genera la congruencia a partir de la unión de 2 congruencias
         """
         assert self.model == other.model
-        result_ant = {}
-        result = set(self.d) | set(other.d)
-        while (result != result_ant):
-            result_ant = result
-            for x in self.model.universe:
-                for y in self.model.universe:
-                    if not (x, y) in result_ant:
-                        for z in self.model.universe:
-                            if (x, z) in result_ant and (z, y) in result_ant:
-                                result = result | {(x, y), (y, x)}
-        return Congruence(list(result), self.model)
+        return self.join(other)
     
     def __lt__(self, other):
         if self & other == self and self != other:
             return True
         return False
     
-    def __le__(self, other):
-        if self & other == self:
-            return True
-        return False
-    
     def __eq__(self, other):
         if self.model != other.model:
             return False
-        if set(self.d) != set(other.d):
+        if self.v != set(other.d):
             return False
         return True
+
+    def __le__(self, other):
+        return self == other or self <= other
+    
+    def __ge__(self, other):
+        return other <= self
+    
+    def __gt__(self, other):
+        return other < self
     
     def __hash__(self):
         return hash(frozenset(self.dict.items()))
     
     def __repr__(self):
-        result = "Congruence(\n"
-        table = ["%s," % x for x in self.table()]
-        table = indent("\n".join(table))
-        return result + table + ")"
+        return "Congruence(" + repr(super(Congruence, self)) + ")"
 
 
 class CongruenceSystem(object):
