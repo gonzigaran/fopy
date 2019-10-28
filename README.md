@@ -1,12 +1,5 @@
-# OpenDefAlg
+# FOpy - First Order Python library
 
-To run a definability check, you have to run:
-
-```python3 main.py your_model.model```
-
-Where "your_model.model" is a file containing your algebra, all relations which names started with "T" are checked by Open Definability.
-
-The output will be the answer to definability and if it's not definable, the counterexample.
 
 
 ## Format of model files
