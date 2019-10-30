@@ -214,11 +214,17 @@ class _Formula(object):
         raise NotImplemented
     
     def extension(self, model, arity=None):
+        # TODO es un poco ineficiente al tener aridad mas grande que variables libres
         result = set()
         vs = list(self.free_vars())
-        for t in product(model.universe, repeat=len(vs)):
-            if self.satisfy(model, {vs[i]: t[i] for i in range(len(t))}):
-                result.add(t)
+        for t in product(model.universe,repeat=len(vs)):
+            if self.satisfy(model,{vs[i]:t[i] for i in range(len(t))}):
+                if arity and arity > len(vs):
+                    for tt in product(model.universe, repeat=arity - len(vs)):
+                        result.add(t+tt)
+                else:
+                    result.add(t)
+        
         return result
 
 
